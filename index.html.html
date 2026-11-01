@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>حاسبة النقدية والدرج - Liquid Glass</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - SF Pro / Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        apple: {
+                            bg: '#0b0f19',
+                            card: 'rgba(255, 255, 255, 0.08)',
+                            cardHover: 'rgba(255, 255, 255, 0.12)',
+                            border: 'rgba(255, 255, 255, 0.18)',
+                            glow: 'rgba(56, 189, 248, 0.15)',
+                            accent: '#0a84ff',
+                            emerald: '#30d158',
+                            gold: '#ffd60a',
+                            purple: '#bf5af2',
+                            red: '#ff453a'
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            background-color: #080c14;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        
+        /* Liquid Glass Card Styling */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(25px) saturate(190%);
+            -webkit-backdrop-filter: blur(25px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .liquid-glass-header {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .liquid-glass-input {
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .liquid-glass-input:focus {
+            background: rgba(0, 0, 0, 0.55);
+            border-color: #0a84ff;
+            box-shadow: 0 0 15px rgba(10, 132, 255, 0.4);
+        }
+
+        /* Apple Style Glass Pill Button */
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .glass-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animated Glowing Orbs Background */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.5;
+            animation: float 18s ease-in-out infinite alternate;
+        }
+
+        .orb-1 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, #0a84ff 0%, rgba(10,132,255,0) 70%);
+            top: -50px;
+            right: -50px;
+        }
+
+        .orb-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, #bf5af2 0%, rgba(191,90,242,0) 70%);
+            bottom: -100px;
+            left: -80px;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, #30d158 0%, rgba(48,209,88,0) 70%);
+            top: 40%;
+            left: 20%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -40px) scale(1.1); }
+            100% { transform: translate(-20px, 30px) scale(0.95); }
+        }
+
+        /* Hide number input spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* Printable styles */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print, .orb {
+                display: none !important;
+            }
+            .liquid-glass {
+                background: white !important;
+                color: black !important;
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between pb-10">
+
+    <!-- Glowing Background Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Header / Liquid Glass Navbar -->
+    <header class="liquid-glass-header sticky top-0 z-30">
+        <div class="max-w-md mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-500 p-[1px] shadow-lg shadow-blue-500/20">
+                    <div class="w-full h-full rounded-[15px] bg-slate-950/80 backdrop-blur-md flex items-center justify-center text-white font-extrabold text-xl">
+                        ج.م
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
+                        حاسبة النقدية والدرج
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">Liquid</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-400 font-medium">عد الفئات وحساب الباقي بلمسة واحدة</p>
+                </div>
+            </div>
+            
+            <button onclick="confirmReset()" class="glass-btn text-slate-300 hover:text-red-400 px-3 py-2 rounded-2xl flex items-center gap-1.5 text-xs font-bold" title="إعادة ضبط">
+                <i class="fa-solid fa-rotate-right text-xs"></i>
+                <span class="hidden sm:inline">تصفير</span>
+            </button>
+        </div>
+
+        <!-- Segmented Liquid Control Tabs (Apple Style) -->
+        <div class="max-w-md mx-auto px-4 pb-3">
+            <div class="p-1 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-xl grid grid-cols-2 gap-1">
+                <button id="tab-counter" onclick="switchTab('counter')" class="py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 border border-white/20">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>عد الدرج بالنقدية</span>
+                </button>
+                <button id="tab-change" onclick="switchTab('change')" class="py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-white/5">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                    <span>حاسبة الباقي (الفكة)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-md mx-auto w-full px-4 pt-4 flex-grow space-y-4">
+
+        <!-- TAB 1: CASH COUNTER VIEW -->
+        <div id="view-counter" class="space-y-4">
+            <!-- Grand Total Floating Liquid Card -->
+            <div class="sticky top-32 z-20 liquid-glass rounded-3xl p-5 border border-white/20 relative overflow-hidden">
+                <!-- Inner Light Glow -->
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wider block mb-1">المجموع الكلي للدرج</span>
+                        <div class="flex items-baseline gap-2">
+                            <span id="grand-total" class="text-3xl sm:text-4xl font-black text-white tracking-tight">0</span>
+                            <span class="text-sm font-bold text-emerald-400">ج.م</span>
+                        </div>
+                    </div>
+                    <div class="text-left">
+                        <span class="text-[11px] text-slate-400 block mb-1">إجمالي الأوراق</span>
+                        <span id="total-notes-count" class="inline-block bg-white/10 border border-white/15 text-slate-200 text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md">0 قطعة</span>
+                    </div>
+                </div>
+
+                <!-- Action Toolbar inside card -->
+                <div class="grid grid-cols-2 gap-2.5 mt-4 pt-3.5 border-t border-white/10 relative z-10">
+                    <button onclick="copySummary()" class="glass-btn text-slate-200 text-xs font-bold py-2.5 px-3 rounded-2xl flex items-center justify-center gap-2">
+                        <i class="fa-regular fa-copy text-emerald-400"></i>
+                        <span>نسخ التقرير</span>
+                    </button>
+                    <button onclick="openReceiptModal()" class="glass-btn bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-500/40 text-emerald-300 text-xs font-bold py-2.5 px-3 rounded-2xl flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-receipt"></i>
+                        <span>عرض الإيصال</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Denominations List -->
+            <div id="denominations-list" class="space-y-3">
+                <!-- Dynamic JS injects items here -->
+            </div>
+        </div>
+
+        <!-- TAB 2: CHANGE CALCULATOR VIEW -->
+        <div id="view-change" class="hidden space-y-4">
+            <div class="liquid-glass rounded-3xl p-5 border border-white/20 space-y-4">
+                <div class="flex items-center gap-3 pb-3 border-b border-white/10">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-[1px] shadow-lg shadow-emerald-500/20">
+                        <div class="w-full h-full rounded-[15px] bg-slate-950/80 backdrop-blur-md flex items-center justify-center text-emerald-400 font-bold">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-white text-base">حساب باقي المشتريات للزبون</h2>
+                        <p class="text-xs text-slate-400">أدخل المبلغ المدفوع وقيمة الفاتورة لحساب الباقي وتفكيكه</p>
+                    </div>
+                </div>
+
+                <!-- Inputs -->
+                <div class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">المبلغ الذي استلمته من الزبون (ج.م)</label>
+                        <div class="relative">
+                            <input type="number" id="paid-amount" placeholder="مثال: 200" oninput="calculateChange()" class="liquid-glass-input w-full rounded-2xl py-3 px-4 text-xl font-black focus:outline-none">
+                            <!-- Quick Payment Shortcuts -->
+                            <div class="flex gap-2 mt-2.5 overflow-x-auto pb-1">
+                                <button onclick="setPaid(200)" class="glass-btn text-xs font-bold text-slate-200 px-3.5 py-1.5 rounded-xl">200 ج.م</button>
+                                <button onclick="setPaid(100)" class="glass-btn text-xs font-bold text-slate-200 px-3.5 py-1.5 rounded-xl">100 ج.م</button>
+                                <button onclick="setPaid(50)" class="glass-btn text-xs font-bold text-slate-200 px-3.5 py-1.5 rounded-xl">50 ج.م</button>
+                                <button onclick="setPaid(20)" class="glass-btn text-xs font-bold text-slate-200 px-3.5 py-1.5 rounded-xl">20 ج.م</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">إجمالي ثمن المشتريات / المطلوب (ج.م)</label>
+                        <input type="number" id="bill-amount" placeholder="مثال: 97" oninput="calculateChange()" class="liquid-glass-input w-full rounded-2xl py-3 px-4 text-xl font-black text-amber-300 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Result Liquid Box -->
+                <div id="change-result-box" class="mt-4 p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2.5 transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-400">الباقي المتبقي للزبون:</span>
+                        <div class="flex items-baseline gap-1">
+                            <span id="change-due-amount" class="text-3xl font-black text-amber-400">0</span>
+                            <span class="text-xs font-bold text-emerald-400">ج.م</span>
+                        </div>
+                    </div>
+                    
+                    <div id="change-status-msg" class="text-xs font-medium text-slate-400 border-t border-white/10 pt-2">
+                        أدخل المبالغ لحساب الباقي
+                    </div>
+                </div>
+
+                <!-- Breakdown / Recommended Bills -->
+                <div id="change-breakdown-container" class="space-y-2 pt-2 hidden">
+                    <h3 class="text-xs font-bold text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-coins text-amber-400"></i>
+                        <span>الفكة الموصى بإعطائها للزبون:</span>
+                    </h3>
+                    <div id="change-breakdown-items" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <!-- Dynamic items -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Liquid Toast -->
+        <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 liquid-glass text-white text-xs font-bold py-3 px-6 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2.5 border border-white/20">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+            <span id="toast-msg">تم نسخ التقرير بنجاح</span>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-5 text-xs text-slate-500 max-w-md mx-auto w-full px-4">
+        <p>حاسبة النقدية والدرج - نمط Apple Liquid Glass</p>
+    </footer>
+
+    <!-- Receipt Modal (Apple Sheet Style) -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300 no-print">
+        <div class="liquid-glass rounded-3xl max-w-sm w-full p-6 shadow-2xl transform scale-95 transition-transform duration-300 modal-container text-white border border-white/20">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-file-invoice-dollar text-emerald-400 text-xl"></i>
+                    <h3 class="font-bold text-white text-lg">ملخص كشف الدرج</h3>
+                </div>
+                <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Receipt Content -->
+            <div id="receipt-content" class="bg-black/40 rounded-2xl p-4 border border-white/10 text-sm space-y-3">
+                <div class="text-center pb-2 border-b border-dashed border-white/20">
+                    <p class="font-bold text-white text-base">تقرير عد النقدية</p>
+                    <p id="receipt-date" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+
+                <div id="receipt-items" class="space-y-2 text-xs max-h-56 overflow-y-auto pr-1">
+                    <!-- Dynamic Receipt Items -->
+                </div>
+
+                <div class="pt-2 border-t border-dashed border-white/20 space-y-1">
+                    <div class="flex justify-between font-bold text-slate-300 text-xs">
+                        <span>إجمالي القطع والنقود:</span>
+                        <span id="receipt-total-count">0</span>
+                    </div>
+                    <div class="flex justify-between font-black text-white text-base pt-1">
+                        <span>المجموع الكلي:</span>
+                        <span class="text-emerald-400" id="receipt-grand-total">0 ج.م</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="grid grid-cols-2 gap-3 mt-5">
+                <button onclick="window.print()" class="glass-btn text-white text-xs font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-print"></i>
+                    <span>طباعة</span>
+                </button>
+                <button onclick="copySummary()" class="glass-btn bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/40 text-xs font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>نسخ النص</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Currency Denominations Configuration (Egyptian Pound)
+        const DENOMINATIONS = [
+            { value: 200, label: 'مائتان جنيه', glow: 'shadow-purple-500/10', badgeBg: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
+            { value: 100, label: 'مائة جنيه', glow: 'shadow-emerald-500/10', badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+            { value: 50, label: 'خمسون جنيهاً', glow: 'shadow-amber-500/10', badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+            { value: 20, label: 'عشرون جنيهاً', glow: 'shadow-teal-500/10', badgeBg: 'bg-teal-500/20 text-teal-300 border-teal-500/30' },
+            { value: 10, label: 'عشرة جنيهات', glow: 'shadow-rose-500/10', badgeBg: 'bg-rose-500/20 text-rose-300 border-rose-500/30' },
+            { value: 5, label: 'خمسة جنيهات', glow: 'shadow-blue-500/10', badgeBg: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
+            { value: 1, label: 'جنيه واحد (ورقي/معدن)', glow: 'shadow-slate-500/10', badgeBg: 'bg-slate-500/20 text-slate-300 border-slate-500/30' }
+        ];
+
+        // State Store
+        const state = {};
+        DENOMINATIONS.forEach(d => state[d.value] = 0);
+
+        // Web Audio Synthesizer for tactile feedback
+        let audioCtx = null;
+
+        function playClickSound(freq = 600, type = 'sine') {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } catch (e) {}
+        }
+
+        // Tab Switcher
+        function switchTab(tab) {
+            playClickSound(550);
+            const btnCounter = document.getElementById('tab-counter');
+            const btnChange = document.getElementById('tab-change');
+            const viewCounter = document.getElementById('view-counter');
+            const viewChange = document.getElementById('view-change');
+
+            if (tab === 'counter') {
+                btnCounter.className = "py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 border border-white/20";
+                btnChange.className = "py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-white/5";
+                viewCounter.classList.remove('hidden');
+                viewChange.classList.add('hidden');
+            } else {
+                btnChange.className = "py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 border border-white/20";
+                btnCounter.className = "py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-white/5";
+                viewChange.classList.remove('hidden');
+                viewCounter.classList.add('hidden');
+            }
+        }
+
+        // Change Calculator Logic
+        function setPaid(amount) {
+            playClickSound(650);
+            document.getElementById('paid-amount').value = amount;
+            calculateChange();
+        }
+
+        function calculateChange() {
+            const paid = parseFloat(document.getElementById('paid-amount').value) || 0;
+            const bill = parseFloat(document.getElementById('bill-amount').value) || 0;
+            const dueEl = document.getElementById('change-due-amount');
+            const msgEl = document.getElementById('change-status-msg');
+            const breakdownContainer = document.getElementById('change-breakdown-container');
+            const breakdownItems = document.getElementById('change-breakdown-items');
+
+            if (paid === 0 && bill === 0) {
+                dueEl.innerText = "0";
+                msgEl.innerText = "أدخل المبالغ لحساب الباقي";
+                msgEl.className = "text-xs font-medium text-slate-400 border-t border-white/10 pt-2";
+                breakdownContainer.classList.add('hidden');
+                return;
+            }
+
+            const change = paid - bill;
+
+            if (change < 0) {
+                dueEl.innerText = Math.abs(change).toLocaleString('ar-EG');
+                msgEl.innerText = `⚠️ المبلغ المدفوع غير كافٍ! ناقص ${Math.abs(change).toLocaleString('ar-EG')} ج.م`;
+                msgEl.className = "text-xs font-bold text-red-400 border-t border-white/10 pt-2";
+                breakdownContainer.classList.add('hidden');
+            } else if (change === 0) {
+                dueEl.innerText = "0";
+                msgEl.innerText = "✓ المبلغ مضبوط تماماً بدون باقي!";
+                msgEl.className = "text-xs font-bold text-emerald-400 border-t border-white/10 pt-2";
+                breakdownContainer.classList.add('hidden');
+            } else {
+                dueEl.innerText = change.toLocaleString('ar-EG');
+                msgEl.innerText = "✓ قم بإرجاع هذا المبلغ للزبون";
+                msgEl.className = "text-xs font-bold text-emerald-400 border-t border-white/10 pt-2";
+                
+                // Break down change into available notes
+                let remaining = change;
+                const breakdown = [];
+
+                DENOMINATIONS.forEach(d => {
+                    if (remaining >= d.value) {
+                        const count = Math.floor(remaining / d.value);
+                        remaining %= d.value;
+                        breakdown.push({ value: d.value, count: count, label: d.label });
+                    }
+                });
+
+                breakdownItems.innerHTML = '';
+                breakdown.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = "flex justify-between items-center bg-black/30 border border-white/10 p-2.5 rounded-2xl text-xs font-bold";
+                    el.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-white/10 text-white flex items-center justify-center font-black">${item.value}</span>
+                            <span class="text-slate-300">${item.label}</span>
+                        </div>
+                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-xl font-black">${item.count} ورقة/قطع</span>
+                    `;
+                    breakdownItems.appendChild(el);
+                });
+
+                breakdownContainer.classList.remove('hidden');
+            }
+        }
+
+        // Render Denominations UI List
+        function renderDenominations() {
+            const container = document.getElementById('denominations-list');
+            container.innerHTML = '';
+
+            DENOMINATIONS.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `liquid-glass rounded-3xl p-4 border border-white/15 transition-all duration-300 relative ${item.glow}`;
+                
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl font-black text-white w-14 text-center py-1.5 px-2 rounded-2xl bg-black/40 border border-white/15 shadow-inner">
+                                ${item.value}
+                            </span>
+                            <div>
+                                <h2 class="text-xs font-bold text-slate-200">${item.label}</h2>
+                                <span class="text-[10px] text-slate-400 font-semibold">فئة ${item.value} ج.م</span>
+                            </div>
+                        </div>
+                        <div class="text-left">
+                            <span id="subtotal-${item.value}" class="text-base font-black text-white block">0</span>
+                            <span class="text-[10px] text-emerald-400 font-bold">ج.م</span>
+                        </div>
+                    </div>
+
+                    <!-- Input Controls & Quick Addition Row -->
+                    <div class="flex items-center justify-between gap-2">
+                        <!-- Main Counter (+/- & Input) -->
+                        <div class="flex items-center bg-black/40 rounded-2xl p-1 border border-white/10 flex-1 max-w-[180px]">
+                            <button onclick="updateCount(${item.value}, -1)" class="glass-btn w-8 h-8 rounded-xl text-slate-200 font-bold flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <input type="number" 
+                                   id="input-${item.value}" 
+                                   value="" 
+                                   placeholder="0"
+                                   min="0"
+                                   oninput="handleInputChange(${item.value}, this.value)"
+                                   class="w-full bg-transparent text-center font-black text-white text-sm focus:outline-none px-1">
+                            <button onclick="updateCount(${item.value}, 1)" class="glass-btn bg-blue-600/60 border-blue-400/40 w-8 h-8 rounded-xl text-white font-bold flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <!-- Quick Add Buttons -->
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="updateCount(${item.value}, 1)" class="glass-btn text-[11px] font-bold text-slate-200 px-2.5 py-1.5 rounded-xl">
+                                +1
+                            </button>
+                            <button onclick="updateCount(${item.value}, 5)" class="glass-btn text-[11px] font-bold text-slate-200 px-2.5 py-1.5 rounded-xl">
+                                +5
+                            </button>
+                            <button onclick="updateCount(${item.value}, 10)" class="glass-btn text-[11px] font-bold text-slate-200 px-2.5 py-1.5 rounded-xl">
+                                +10
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Update State and Calculate Totals
+        function updateCount(denom, delta) {
+            playClickSound(delta > 0 ? 750 : 450);
+            const current = state[denom] || 0;
+            const updated = Math.max(0, current + delta);
+            state[denom] = updated;
+
+            // Sync Input UI
+            const inputEl = document.getElementById(`input-${denom}`);
+            if (inputEl) {
+                inputEl.value = updated === 0 ? '' : updated;
+            }
+
+            calculateTotals();
+        }
+
+        function handleInputChange(denom, val) {
+            const parsed = parseInt(val, 10);
+            state[denom] = isNaN(parsed) || parsed < 0 ? 0 : parsed;
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let grandTotal = 0;
+            let totalNotes = 0;
+
+            DENOMINATIONS.forEach(item => {
+                const count = state[item.value] || 0;
+                const subtotal = count * item.value;
+                grandTotal += subtotal;
+                totalNotes += count;
+
+                // Update Subtotal element
+                const subtotalEl = document.getElementById(`subtotal-${item.value}`);
+                if (subtotalEl) {
+                    subtotalEl.innerText = subtotal.toLocaleString('ar-EG');
+                }
+            });
+
+            // Update Grand Totals UI
+            document.getElementById('grand-total').innerText = grandTotal.toLocaleString('ar-EG');
+            document.getElementById('total-notes-count').innerText = `${totalNotes.toLocaleString('ar-EG')} قطعة`;
+        }
+
+        // Reset All Fields
+        function confirmReset() {
+            playClickSound(300, 'triangle');
+            DENOMINATIONS.forEach(d => {
+                state[d.value] = 0;
+                const inputEl = document.getElementById(`input-${d.value}`);
+                if (inputEl) inputEl.value = '';
+            });
+            document.getElementById('paid-amount').value = '';
+            document.getElementById('bill-amount').value = '';
+            calculateChange();
+            calculateTotals();
+            showToast('تم تصفير جميع القيم', 'fa-rotate-right', 'text-amber-400');
+        }
+
+        // Copy Text Summary to Clipboard
+        function copySummary() {
+            playClickSound(850);
+            let grandTotal = 0;
+            let totalCount = 0;
+            let text = `📋 *تقرير جرد النقدية والدرج*\n`;
+            text += `📅 التاريخ: ${new Date().toLocaleDateString('ar-EG')} - ${new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}\n`;
+            text += `------------------------------\n`;
+
+            DENOMINATIONS.forEach(d => {
+                const count = state[d.value] || 0;
+                if (count > 0) {
+                    const subtotal = count * d.value;
+                    grandTotal += subtotal;
+                    totalCount += count;
+                    text += `• فئة ${d.value} ج.م × ${count} = ${subtotal.toLocaleString('ar-EG')} ج.م\n`;
+                }
+            });
+
+            text += `------------------------------\n`;
+            text += `📦 إجمالي الأوراق/القطع: ${totalCount.toLocaleString('ar-EG')}\n`;
+            text += `💰 *المجموع الكلي: ${grandTotal.toLocaleString('ar-EG')} جنيه مصري*`;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('تم نسخ التقرير إلى الحافظة');
+                }).catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('تم نسخ التقرير إلى الحافظة');
+            } catch (err) {
+                showToast('تعذر النسخ تلقائياً', 'fa-circle-exclamation', 'text-red-400');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Modal Receipt Functions
+        function openReceiptModal() {
+            playClickSound(700);
+            const modal = document.getElementById('receipt-modal');
+            const itemsContainer = document.getElementById('receipt-items');
+            const dateEl = document.getElementById('receipt-date');
+            
+            dateEl.innerText = `${new Date().toLocaleDateString('ar-EG')} | ${new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}`;
+            itemsContainer.innerHTML = '';
+
+            let grandTotal = 0;
+            let totalNotes = 0;
+            let hasItems = false;
+
+            DENOMINATIONS.forEach(d => {
+                const count = state[d.value] || 0;
+                if (count > 0) {
+                    hasItems = true;
+                    const subtotal = count * d.value;
+                    grandTotal += subtotal;
+                    totalNotes += count;
+
+                    const row = document.createElement('div');
+                    row.className = 'flex justify-between items-center text-slate-300 py-1 border-b border-white/5';
+                    row.innerHTML = `
+                        <span>فئة ${d.value} ج.م (${count} قطعة)</span>
+                        <span class="font-bold text-white">${subtotal.toLocaleString('ar-EG')} ج.م</span>
+                    `;
+                    itemsContainer.appendChild(row);
+                }
+            });
+
+            if (!hasItems) {
+                itemsContainer.innerHTML = `<p class="text-center text-slate-500 py-4 font-semibold">لم يتم إدخال أي مبالغ بعد</p>`;
+            }
+
+            document.getElementById('receipt-total-count').innerText = `${totalNotes.toLocaleString('ar-EG')} قطعة`;
+            document.getElementById('receipt-grand-total').innerText = `${grandTotal.toLocaleString('ar-EG')} ج.م`;
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-container').classList.remove('scale-95');
+        }
+
+        function closeReceiptModal() {
+            playClickSound(400);
+            const modal = document.getElementById('receipt-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-container').classList.add('scale-95');
+        }
+
+        // Toast Notification Helper
+        function showToast(msg, icon = 'fa-circle-check', iconColor = 'text-emerald-400') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = msg;
+            toastIcon.className = `fa-solid ${icon} ${iconColor} text-sm`;
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Initialize App on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderDenominations();
+            calculateTotals();
+        });
+    </script>
+</body>
+</html>
